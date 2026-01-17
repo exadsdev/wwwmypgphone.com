@@ -46,10 +46,16 @@ export default function AdminPage() {
         }
     }, []);
 
-    const loadAllData = () => {
+    const loadAllData = async () => {
         try {
-            const savedSettings = localStorage.getItem('siteSettings');
-            if (savedSettings) setSettings(JSON.parse(savedSettings));
+            // Load Settings from API (JSON File)
+            const settingsRes = await fetch('/api/settings');
+            if (settingsRes.ok) {
+                const settingsData = await settingsRes.json();
+                setSettings(settingsData);
+            }
+
+            // Load other data from localStorage
             const savedVideos = localStorage.getItem('adminVideos');
             if (savedVideos) setVideos(JSON.parse(savedVideos));
             const savedPosts = localStorage.getItem('adminPosts');
@@ -83,9 +89,23 @@ export default function AdminPage() {
     };
 
     // ==================== Settings ====================
-    const handleSaveSettings = () => {
-        localStorage.setItem('siteSettings', JSON.stringify(settings));
-        showMsg('✅ บันทึกการตั้งค่าสำเร็จ!');
+    const handleSaveSettings = async () => {
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings),
+            });
+
+            if (response.ok) {
+                showMsg('✅ บันทึกการตั้งค่าลงไฟล์ JSON สำเร็จ!');
+            } else {
+                showMsg('❌ ไม่สามารถบันทึกค่าได้');
+            }
+        } catch (e) {
+            console.error('Error saving settings:', e);
+            showMsg('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        }
     };
 
     const showMsg = (msg) => {

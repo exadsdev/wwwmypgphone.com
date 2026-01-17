@@ -35,16 +35,22 @@ export default function PromoSection() {
         setIsBotUser(isBot());
         setCacheVersion(getCacheVersion());
 
-        // ดึงค่า shopUrl จาก Settings (localStorage)
-        try {
-            const settings = JSON.parse(localStorage.getItem('siteSettings') || '{}');
-            if (settings.shopUrl) {
-                const cleanUrl = settings.shopUrl.replace(/\/+$/, ''); // ลบ slash สุดท้าย
-                setShopUrl(cleanUrl);
+        // ดึงค่า shopUrl จาก Settings API (JSON File)
+        const loadSettings = async () => {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    if (settings.shopUrl) {
+                        const cleanUrl = settings.shopUrl.replace(/\/+$/, '');
+                        setShopUrl(cleanUrl);
+                    }
+                }
+            } catch (e) {
+                console.error('Error fetching settings:', e);
             }
-        } catch (e) {
-            console.error('Error reading shopUrl from settings', e);
-        }
+        };
+        loadSettings();
     }, []);
 
     const handleLinkClick = (type, extra) => {
